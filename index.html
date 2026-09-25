@@ -343,6 +343,114 @@ config = {
 
     <script src="https://pygame-web.github.io/archives/0.9//browserfs.min.js"></script>
 
+
+<style id="dynty-loader-style">
+    body { background: #10181d; }
+    #dynty-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        color: #f2f0e7;
+        background: #10181d;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 420ms ease, visibility 420ms ease;
+        font-family: "Bahnschrift", "Segoe UI Variable", "Trebuchet MS", sans-serif;
+    }
+    #dynty-loader.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    #dynty-loader::before {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        content: "";
+        background-image:
+            linear-gradient(rgba(171, 201, 191, .045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(171, 201, 191, .045) 1px, transparent 1px),
+            linear-gradient(115deg, transparent 0 67%, rgba(198, 224, 93, .035) 67.1%, transparent 67.3%);
+        background-size: 48px 48px, 48px 48px, 100% 100%;
+        mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+    }
+    .dynty-loader-wrap {
+        width: min(720px, calc(100vw - 56px));
+        padding: 28px 0;
+        animation: dynty-loader-arrive 520ms ease both;
+    }
+    .dynty-loader-header, .dynty-loader-footer, .dynty-loader-progress-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .dynty-loader-header {
+        padding-bottom: 18px;
+        border-bottom: 1px solid #34434a;
+    }
+    .dynty-loader-brand { display: flex; align-items: center; gap: 12px; }
+    .dynty-loader-mark {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid #c6e05d;
+        color: #c6e05d;
+        font-size: 14px;
+        font-weight: 800;
+    }
+    .dynty-loader-name { font-size: 14px; font-weight: 700; color: #f2f0e7; }
+    .dynty-loader-name span { color: #aab8b5; font-weight: 400; }
+    .dynty-loader-edition { color: #aab8b5; font-size: 11px; }
+    .dynty-loader-edition b { margin-left: 8px; color: #c6e05d; font-weight: 600; }
+    .dynty-loader-copy { padding: 66px 0 52px; }
+    .dynty-loader-kicker { margin: 0 0 18px; color: #85c9c2; font-size: 12px; }
+    .dynty-loader-kicker span { color: #8b989a; }
+    .dynty-loader-copy h1 { margin: 0; font-size: 44px; line-height: 1.08; font-weight: 650; }
+    .dynty-loader-copy h1 span { color: #c6e05d; }
+    .dynty-loader-stage-row { display: flex; align-items: center; gap: 10px; margin-top: 22px; }
+    .dynty-loader-pulse {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #c6e05d;
+        box-shadow: 0 0 14px rgba(198, 224, 93, .55);
+        animation: dynty-loader-pulse 1.4s ease-in-out infinite;
+    }
+    #dynty-loader-stage { color: #c0cac5; font-size: 14px; }
+    .dynty-loader-progress-track { height: 7px; overflow: hidden; background: #29373d; }
+    #dynty-loader-progress {
+        position: relative;
+        width: 8%;
+        height: 100%;
+        background: linear-gradient(90deg, #c6e05d, #7ed0bd);
+        transition: width 500ms cubic-bezier(.2, .75, .2, 1);
+    }
+    #dynty-loader-progress::after {
+        position: absolute;
+        inset: 0;
+        content: "";
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent);
+        animation: dynty-loader-sheen 1.5s ease-in-out infinite;
+    }
+    .dynty-loader-progress-meta { margin-top: 12px; color: #aab8b5; font-size: 11px; }
+    #dynty-loader-percent { color: #f2f0e7; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .dynty-loader-footer { margin-top: 48px; color: #839195; font-size: 10px; }
+    .dynty-loader-divider { width: 1px; height: 14px; margin: 0 12px; background: #526169; }
+    .dynty-loader-footer-status { display: flex; align-items: center; }
+    @keyframes dynty-loader-arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes dynty-loader-pulse { 50% { opacity: .35; transform: scale(.78); } }
+    @keyframes dynty-loader-sheen { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
+    @media (max-width: 560px) {
+        .dynty-loader-wrap { width: calc(100vw - 40px); }
+        .dynty-loader-copy { padding: 54px 0 42px; }
+        .dynty-loader-copy h1 { font-size: 34px; }
+        .dynty-loader-edition { font-size: 0; }
+        .dynty-loader-footer { margin-top: 38px; font-size: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        #dynty-loader, .dynty-loader-wrap, .dynty-loader-pulse, #dynty-loader-progress::after { animation: none; transition-duration: 0ms; }
+    }
+</style>
 </head>
 
 <body>
@@ -485,5 +593,48 @@ frameborder="1"
 
     </script>
 
+
+<main id="dynty-loader" role="status" aria-live="polite">
+    <div class="dynty-loader-wrap">
+        <header class="dynty-loader-header">
+            <div class="dynty-loader-brand">
+                <span class="dynty-loader-mark">DC</span>
+                <span class="dynty-loader-name">DYNTY <span>/ DEFENSE</span></span>
+            </div>
+            <div class="dynty-loader-edition">ENDLESS CRAFTING <b>WEB EDITION</b></div>
+        </header>
+        <section class="dynty-loader-copy">
+            <p class="dynty-loader-kicker">SYSTEM STARTUP <span>/ 01</span></p>
+            <h1>Building your world<span>.</span></h1>
+            <div class="dynty-loader-stage-row">
+                <span class="dynty-loader-pulse" aria-hidden="true"></span>
+                <span id="dynty-loader-stage">Preparing browser runtime</span>
+            </div>
+        </section>
+        <div role="progressbar" aria-label="Game loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
+            <div class="dynty-loader-progress-track"><div id="dynty-loader-progress"></div></div>
+            <div class="dynty-loader-progress-meta"><span>ENGINE INITIALIZATION</span><span id="dynty-loader-percent">08%</span></div>
+        </div>
+        <footer class="dynty-loader-footer">
+            <span>PYGAME WEBASSEMBLY</span>
+            <span class="dynty-loader-footer-status"><span class="dynty-loader-divider"></span> LOCAL SAVE STORAGE</span>
+        </footer>
+    </div>
+</main>
+
+<script>
+    window.dyntyUpdateLoader = function (label, progress, complete) {
+        const loader = document.getElementById("dynty-loader");
+        const stage = document.getElementById("dynty-loader-stage");
+        const fill = document.getElementById("dynty-loader-progress");
+        const percent = document.getElementById("dynty-loader-percent");
+        const bar = document.querySelector("#dynty-loader [role=progressbar]");
+        if (stage) stage.textContent = label;
+        if (fill) fill.style.width = `${progress}%`;
+        if (percent) percent.textContent = `${String(progress).padStart(2, "0")}%`;
+        if (bar) bar.setAttribute("aria-valuenow", String(progress));
+        if (complete && loader) loader.classList.add("is-hidden");
+    };
+</script>
 </body>
 </html>
