@@ -84,7 +84,7 @@ async def custom_site():
 
 
 
-    apk = "endless-crafting-defense.apk?release=e2ce23a21bf5babe"
+    apk = "endless-crafting-defense.apk?release=0e83798c5f337c72"
 
     bundle = "endless-crafting-defense"
 
@@ -451,6 +451,41 @@ config = {
         #dynty-loader, .dynty-loader-wrap, .dynty-loader-pulse, #dynty-loader-progress::after { animation: none; transition-duration: 0ms; }
     }
 </style>
+
+<script>
+    let dyntyLoaderLastProgress = Date.now();
+    let dyntyLoaderProgress = 8;
+
+    window.dyntyUpdateLoader = function (label, progress, complete) {
+        const loader = document.getElementById("dynty-loader");
+        const stage = document.getElementById("dynty-loader-stage");
+        const fill = document.getElementById("dynty-loader-progress");
+        const percent = document.getElementById("dynty-loader-percent");
+        const bar = document.querySelector("#dynty-loader [role=progressbar]");
+        dyntyLoaderLastProgress = Date.now();
+        dyntyLoaderProgress = progress;
+        if (stage) stage.textContent = label;
+        if (fill) fill.style.width = `${progress}%`;
+        if (percent) percent.textContent = `${String(progress).padStart(2, "0")}%`;
+        if (bar) bar.setAttribute("aria-valuenow", String(progress));
+        if (complete && loader) loader.classList.add("is-hidden");
+    };
+
+    const dyntyLoaderWatchdog = window.setInterval(() => {
+        const loader = document.getElementById("dynty-loader");
+        if (!loader || loader.classList.contains("is-hidden")) {
+            window.clearInterval(dyntyLoaderWatchdog);
+            return;
+        }
+        if (Date.now() - dyntyLoaderLastProgress < 30000) return;
+        dyntyLoaderLastProgress = Date.now();
+        window.dyntyUpdateLoader(
+            "Still waiting for the browser runtime. Check console or network access.",
+            dyntyLoaderProgress,
+            false
+        );
+    }, 1000);
+</script>
 </head>
 
 <body>
@@ -621,20 +656,5 @@ frameborder="1"
         </footer>
     </div>
 </main>
-
-<script>
-    window.dyntyUpdateLoader = function (label, progress, complete) {
-        const loader = document.getElementById("dynty-loader");
-        const stage = document.getElementById("dynty-loader-stage");
-        const fill = document.getElementById("dynty-loader-progress");
-        const percent = document.getElementById("dynty-loader-percent");
-        const bar = document.querySelector("#dynty-loader [role=progressbar]");
-        if (stage) stage.textContent = label;
-        if (fill) fill.style.width = `${progress}%`;
-        if (percent) percent.textContent = `${String(progress).padStart(2, "0")}%`;
-        if (bar) bar.setAttribute("aria-valuenow", String(progress));
-        if (complete && loader) loader.classList.add("is-hidden");
-    };
-</script>
 </body>
 </html>
