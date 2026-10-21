@@ -84,7 +84,7 @@ async def custom_site():
 
 
 
-    apk = "endless-crafting-defense.apk?release=bad9335be0476ecd"
+    apk = "endless-crafting-defense.apk?release=9e0d376a324ee8cf"
 
     bundle = "endless-crafting-defense"
 
@@ -345,7 +345,7 @@ config = {
 
 
 <style id="dynty-loader-style">
-    body { background: #10181d; }
+    body { background: #0a0f1c; }
     #dynty-loader {
         position: fixed;
         inset: 0;
@@ -353,8 +353,8 @@ config = {
         display: grid;
         place-items: center;
         overflow: hidden;
-        color: #f2f0e7;
-        background: #10181d;
+        color: #e8eefc;
+        background: #0a0f1c;
         opacity: 1;
         visibility: visible;
         transition: opacity 420ms ease, visibility 420ms ease;
@@ -367,9 +367,9 @@ config = {
         z-index: -1;
         content: "";
         background-image:
-            linear-gradient(rgba(171, 201, 191, .045) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(171, 201, 191, .045) 1px, transparent 1px),
-            linear-gradient(115deg, transparent 0 67%, rgba(198, 224, 93, .035) 67.1%, transparent 67.3%);
+            linear-gradient(rgba(150, 214, 255, .04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(150, 214, 255, .04) 1px, transparent 1px),
+            linear-gradient(115deg, transparent 0 67%, rgba(255, 207, 112, .035) 67.1%, transparent 67.3%);
         background-size: 48px 48px, 48px 48px, 100% 100%;
         mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
     }
@@ -385,7 +385,7 @@ config = {
     }
     .dynty-loader-header {
         padding-bottom: 18px;
-        border-bottom: 1px solid #34434a;
+        border-bottom: 1px solid #2a3654;
     }
     .dynty-loader-brand { display: flex; align-items: center; gap: 12px; }
     .dynty-loader-mark {
@@ -393,36 +393,36 @@ config = {
         width: 34px;
         height: 34px;
         place-items: center;
-        border: 1px solid #c6e05d;
-        color: #c6e05d;
+        border: 1px solid #ffcf70;
+        color: #ffcf70;
         font-size: 14px;
         font-weight: 800;
     }
-    .dynty-loader-name { font-size: 14px; font-weight: 700; color: #f2f0e7; }
-    .dynty-loader-name span { color: #aab8b5; font-weight: 400; }
-    .dynty-loader-edition { color: #aab8b5; font-size: 11px; }
-    .dynty-loader-edition b { margin-left: 8px; color: #c6e05d; font-weight: 600; }
+    .dynty-loader-name { font-size: 14px; font-weight: 700; color: #e8eefc; }
+    .dynty-loader-name span { color: #8a98b8; font-weight: 400; }
+    .dynty-loader-edition { color: #8a98b8; font-size: 11px; }
+    .dynty-loader-edition b { margin-left: 8px; color: #ffcf70; font-weight: 600; }
     .dynty-loader-copy { padding: 66px 0 52px; }
-    .dynty-loader-kicker { margin: 0 0 18px; color: #85c9c2; font-size: 12px; }
-    .dynty-loader-kicker span { color: #8b989a; }
+    .dynty-loader-kicker { margin: 0 0 18px; color: #96d6ff; font-size: 12px; }
+    .dynty-loader-kicker span { color: #8a98b8; }
     .dynty-loader-copy h1 { margin: 0; font-size: 44px; line-height: 1.08; font-weight: 650; }
-    .dynty-loader-copy h1 span { color: #c6e05d; }
+    .dynty-loader-copy h1 span { color: #ffcf70; }
     .dynty-loader-stage-row { display: flex; align-items: center; gap: 10px; margin-top: 22px; }
     .dynty-loader-pulse {
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: #c6e05d;
-        box-shadow: 0 0 14px rgba(198, 224, 93, .55);
+        background: #ffcf70;
+        box-shadow: 0 0 14px rgba(255, 207, 112, .55);
         animation: dynty-loader-pulse 1.4s ease-in-out infinite;
     }
-    #dynty-loader-stage { color: #c0cac5; font-size: 14px; }
-    .dynty-loader-progress-track { height: 7px; overflow: hidden; background: #29373d; }
+    #dynty-loader-stage { color: #8a98b8; font-size: 14px; }
+    .dynty-loader-progress-track { height: 7px; overflow: hidden; background: #18223a; }
     #dynty-loader-progress {
         position: relative;
         width: 8%;
         height: 100%;
-        background: linear-gradient(90deg, #c6e05d, #7ed0bd);
+        background: linear-gradient(90deg, #ffcf70, #96d6ff);
         transition: width 500ms cubic-bezier(.2, .75, .2, 1);
     }
     #dynty-loader-progress::after {
@@ -432,10 +432,10 @@ config = {
         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent);
         animation: dynty-loader-sheen 1.5s ease-in-out infinite;
     }
-    .dynty-loader-progress-meta { margin-top: 12px; color: #aab8b5; font-size: 11px; }
-    #dynty-loader-percent { color: #f2f0e7; font-size: 13px; font-variant-numeric: tabular-nums; }
-    .dynty-loader-footer { margin-top: 48px; color: #839195; font-size: 10px; }
-    .dynty-loader-divider { width: 1px; height: 14px; margin: 0 12px; background: #526169; }
+    .dynty-loader-progress-meta { margin-top: 12px; color: #8a98b8; font-size: 11px; }
+    #dynty-loader-percent { color: #e8eefc; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .dynty-loader-footer { margin-top: 48px; color: #8a98b8; font-size: 10px; }
+    .dynty-loader-divider { width: 1px; height: 14px; margin: 0 12px; background: #2a3654; }
     .dynty-loader-footer-status { display: flex; align-items: center; }
     @keyframes dynty-loader-arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes dynty-loader-pulse { 50% { opacity: .35; transform: scale(.78); } }
