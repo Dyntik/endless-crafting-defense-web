@@ -84,7 +84,7 @@ async def custom_site():
 
 
 
-    apk = "endless-crafting-defense.apk?release=9e0d376a324ee8cf"
+    apk = "endless-crafting-defense.apk?release=736c4e7cf91daf5a"
 
     bundle = "endless-crafting-defense"
 
@@ -373,11 +373,33 @@ config = {
         background-size: 48px 48px, 48px 48px, 100% 100%;
         mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
     }
+    #dynty-loader::after {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        content: "";
+        pointer-events: none;
+        background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px);
+    }
     .dynty-loader-wrap {
+        position: relative;
         width: min(720px, calc(100vw - 56px));
         padding: 28px 0;
         animation: dynty-loader-arrive 520ms ease both;
     }
+    .dynty-loader-corner {
+        position: absolute;
+        box-sizing: border-box;
+        width: 14px;
+        height: 14px;
+        border: 0 solid #96d6ff;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .dynty-loader-corner.tl { top: -18px; left: -18px; border-width: 1px 0 0 1px; }
+    .dynty-loader-corner.tr { top: -18px; right: -18px; border-width: 1px 1px 0 0; }
+    .dynty-loader-corner.bl { bottom: -18px; left: -18px; border-width: 0 0 1px 1px; }
+    .dynty-loader-corner.br { bottom: -18px; right: -18px; border-width: 0 1px 1px 0; }
     .dynty-loader-header, .dynty-loader-footer, .dynty-loader-progress-meta {
         display: flex;
         align-items: center;
@@ -402,6 +424,17 @@ config = {
     .dynty-loader-name span { color: #8a98b8; font-weight: 400; }
     .dynty-loader-edition { color: #8a98b8; font-size: 11px; }
     .dynty-loader-edition b { margin-left: 8px; color: #ffcf70; font-weight: 600; }
+    .dynty-loader-led {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin-right: 8px;
+        border-radius: 50%;
+        background: #96d6ff;
+        box-shadow: 0 0 8px #96d6ff;
+        vertical-align: middle;
+        animation: dynty-loader-led 2s ease-in-out infinite;
+    }
     .dynty-loader-copy { padding: 66px 0 52px; }
     .dynty-loader-kicker { margin: 0 0 18px; color: #96d6ff; font-size: 12px; }
     .dynty-loader-kicker span { color: #8a98b8; }
@@ -417,7 +450,27 @@ config = {
         animation: dynty-loader-pulse 1.4s ease-in-out infinite;
     }
     #dynty-loader-stage { color: #8a98b8; font-size: 14px; }
-    .dynty-loader-progress-track { height: 7px; overflow: hidden; background: #18223a; }
+    .dynty-loader-log {
+        height: 48px;
+        margin-top: 14px;
+        overflow: hidden;
+        color: #8a98b8;
+        font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+        font-size: 11px;
+        line-height: 16px;
+        letter-spacing: .04em;
+    }
+    .dynty-loader-log-line { height: 16px; overflow: hidden; white-space: pre; }
+    .dynty-loader-log-line.is-old { opacity: .45; }
+    .dynty-loader-log-line.is-new { color: #e8eefc; }
+    .dynty-loader-cursor { animation: dynty-loader-blink 1s steps(2) infinite; }
+    .dynty-loader-progress-track {
+        height: 7px;
+        overflow: hidden;
+        background: #18223a;
+        -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+        mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+    }
     #dynty-loader-progress {
         position: relative;
         width: 8%;
@@ -435,10 +488,14 @@ config = {
     .dynty-loader-progress-meta { margin-top: 12px; color: #8a98b8; font-size: 11px; }
     #dynty-loader-percent { color: #e8eefc; font-size: 13px; font-variant-numeric: tabular-nums; }
     .dynty-loader-footer { margin-top: 48px; color: #8a98b8; font-size: 10px; }
+    .dynty-loader-footer-left { display: flex; align-items: center; }
+    .dynty-loader-build { font-family: "Cascadia Mono", Consolas, "Courier New", monospace; color: #96d6ff; letter-spacing: .04em; }
     .dynty-loader-divider { width: 1px; height: 14px; margin: 0 12px; background: #2a3654; }
     .dynty-loader-footer-status { display: flex; align-items: center; }
     @keyframes dynty-loader-arrive { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes dynty-loader-pulse { 50% { opacity: .35; transform: scale(.78); } }
+    @keyframes dynty-loader-led { 50% { opacity: .35; } }
+    @keyframes dynty-loader-blink { to { opacity: 0; } }
     @keyframes dynty-loader-sheen { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
     @media (max-width: 560px) {
         .dynty-loader-wrap { width: calc(100vw - 40px); }
@@ -448,13 +505,45 @@ config = {
         .dynty-loader-footer { margin-top: 38px; font-size: 9px; }
     }
     @media (prefers-reduced-motion: reduce) {
-        #dynty-loader, .dynty-loader-wrap, .dynty-loader-pulse, #dynty-loader-progress::after { animation: none; transition-duration: 0ms; }
+        #dynty-loader, .dynty-loader-wrap, .dynty-loader-pulse, .dynty-loader-led, .dynty-loader-cursor, #dynty-loader-progress::after { animation: none; transition-duration: 0ms; }
     }
 </style>
 
 <script>
     let dyntyLoaderLastProgress = Date.now();
     let dyntyLoaderProgress = 8;
+    const dyntyLoaderStart = performance.now();
+    const dyntyLoaderLogLines = 3;
+    const dyntyLoaderLog = [];
+
+    function dyntyLoaderLogAdd(label, elapsedMs = performance.now() - dyntyLoaderStart) {
+        const last = dyntyLoaderLog[dyntyLoaderLog.length - 1];
+        if (last && last.label === label) return;
+        const seconds = (elapsedMs / 1000).toFixed(2).padStart(5, "0");
+        dyntyLoaderLog.push({ label, stamp: `[${seconds}]` });
+    }
+
+    function dyntyLoaderLogRender() {
+        const box = document.getElementById("dynty-loader-log");
+        if (!box) return;
+        const shown = dyntyLoaderLog.slice(-dyntyLoaderLogLines);
+        const offset = dyntyLoaderLogLines - shown.length;
+        box.textContent = "";
+        for (let i = 0; i < dyntyLoaderLogLines; i++) {
+            const entry = shown[i - offset];
+            const newest = i === dyntyLoaderLogLines - 1;
+            const row = document.createElement("div");
+            row.className = "dynty-loader-log-line " + (newest ? "is-new" : "is-old");
+            if (entry) row.textContent = `${entry.stamp} ${entry.label}`;
+            if (newest && entry) {
+                const cursor = document.createElement("span");
+                cursor.className = "dynty-loader-cursor";
+                cursor.textContent = "\u25AE";
+                row.appendChild(cursor);
+            }
+            box.appendChild(row);
+        }
+    }
 
     window.dyntyUpdateLoader = function (label, progress, complete) {
         const loader = document.getElementById("dynty-loader");
@@ -464,6 +553,9 @@ config = {
         const bar = document.querySelector("#dynty-loader [role=progressbar]");
         dyntyLoaderLastProgress = Date.now();
         dyntyLoaderProgress = progress;
+        if (!dyntyLoaderLog.length && stage) dyntyLoaderLogAdd(stage.textContent, 0);
+        dyntyLoaderLogAdd(label);
+        dyntyLoaderLogRender();
         if (stage) stage.textContent = label;
         if (fill) fill.style.width = `${progress}%`;
         if (percent) percent.textContent = `${String(progress).padStart(2, "0")}%`;
@@ -631,12 +723,16 @@ frameborder="1"
 
 <main id="dynty-loader" role="status" aria-live="polite">
     <div class="dynty-loader-wrap">
+        <i class="dynty-loader-corner tl" aria-hidden="true"></i>
+        <i class="dynty-loader-corner tr" aria-hidden="true"></i>
+        <i class="dynty-loader-corner bl" aria-hidden="true"></i>
+        <i class="dynty-loader-corner br" aria-hidden="true"></i>
         <header class="dynty-loader-header">
             <div class="dynty-loader-brand">
                 <span class="dynty-loader-mark">DC</span>
                 <span class="dynty-loader-name">DYNTY <span>/ DEFENSE</span></span>
             </div>
-            <div class="dynty-loader-edition">ENDLESS CRAFTING <b>WEB EDITION</b></div>
+            <div class="dynty-loader-edition"><span class="dynty-loader-led" aria-hidden="true"></span>ENDLESS CRAFTING <b>WEB EDITION</b></div>
         </header>
         <section class="dynty-loader-copy">
             <p class="dynty-loader-kicker">SYSTEM STARTUP <span>/ 01</span></p>
@@ -645,13 +741,14 @@ frameborder="1"
                 <span class="dynty-loader-pulse" aria-hidden="true"></span>
                 <span id="dynty-loader-stage">Preparing browser runtime</span>
             </div>
+            <div id="dynty-loader-log" class="dynty-loader-log" aria-hidden="true"></div>
         </section>
         <div role="progressbar" aria-label="Game loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
             <div class="dynty-loader-progress-track"><div id="dynty-loader-progress"></div></div>
             <div class="dynty-loader-progress-meta"><span>ENGINE INITIALIZATION</span><span id="dynty-loader-percent">08%</span></div>
         </div>
         <footer class="dynty-loader-footer">
-            <span>PYGAME WEBASSEMBLY</span>
+            <span class="dynty-loader-footer-left"><span class="dynty-loader-build">BUILD 0.8.9.113</span><span class="dynty-loader-divider"></span><span>PYGAME WEBASSEMBLY</span></span>
             <span class="dynty-loader-footer-status"><span class="dynty-loader-divider"></span> LOCAL SAVE STORAGE</span>
         </footer>
     </div>
