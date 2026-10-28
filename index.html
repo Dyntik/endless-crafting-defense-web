@@ -84,7 +84,7 @@ async def custom_site():
 
 
 
-    apk = "endless-crafting-defense.apk?release=6ade9fcdfe323724"
+    apk = "endless-crafting-defense.apk?release=181f822da5a5f4ba"
 
     bundle = "endless-crafting-defense"
 
@@ -252,7 +252,6 @@ config = {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="viewport" content="height=device-height, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <link rel="prefetch" href="https://pygame-web.github.io/archives/0.9/vt/xterm.js">
@@ -507,6 +506,348 @@ config = {
     }
 </style>
 
+<script id="dynty-mobile">
+(function () {
+    var t0 = performance.now();
+    var mobile = false;
+    try {
+        mobile = navigator.maxTouchPoints > 0 && window.matchMedia("(pointer: coarse)").matches;
+    } catch (error) {
+        mobile = false;
+    }
+    mobile = mobile || /Android|iPhone|iPad/.test(navigator.userAgent || "");
+    window.DYNTY_MOBILE = mobile;
+    if (!mobile) return;
+
+    document.documentElement.classList.add("dynty-mobile");
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+        meta = document.createElement("meta");
+        meta.name = "viewport";
+        document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover");
+    var style = document.createElement("style");
+    style.id = "dynty-mobile-style";
+    style.textContent = "\nhtml.dynty-mobile, html.dynty-mobile body {\n    height: 100vh;\n    height: 100dvh;\n    margin: 0;\n    overflow: hidden;\n    overscroll-behavior: none;\n    -webkit-touch-callout: none;\n    -webkit-user-select: none;\n    user-select: none;\n    -webkit-tap-highlight-color: transparent;\n}\nhtml.dynty-mobile canvas.emscripten {\n    touch-action: none;\n    overscroll-behavior: none;\n    -webkit-touch-callout: none;\n    -webkit-user-select: none;\n    user-select: none;\n}\n.dynty-loader-extra { margin-top: 18px; color: #8a98b8; font-size: 12px; }\n#dynty-loader-elapsed { font-variant-numeric: tabular-nums; }\n#dynty-loader-hint { margin: 10px 0 0; color: #ffcf70; font-size: 12px; }\n#dynty-loader-diag { margin-top: 14px; padding-top: 10px; border-top: 1px solid #2a3654; }\n#dynty-loader-diag summary { cursor: pointer; color: #e8eefc; }\n#dynty-loader-diag summary.has-errors { color: #ff6b6b; }\n#dynty-loader-diag-log {\n    max-height: 140px;\n    overflow: auto;\n    margin: 8px 0;\n    padding: 8px;\n    background: rgba(0, 0, 0, .35);\n    color: #8a98b8;\n    font: 11px/1.4 \"Cascadia Mono\", Consolas, \"Courier New\", monospace;\n    white-space: pre-wrap;\n    word-break: break-word;\n    -webkit-user-select: text;\n    user-select: text;\n}\n#dynty-loader-copy-btn {\n    height: 26px;\n    padding: 0 10px;\n    border: 1px solid #ffcf70;\n    border-radius: 3px;\n    background: transparent;\n    color: #ffcf70;\n    font: 600 11px \"Bahnschrift\", \"Segoe UI\", sans-serif;\n}\n";
+    document.head.appendChild(style);
+
+    document.addEventListener("contextmenu", function (event) {
+        if (event.target && event.target.tagName === "CANVAS") event.preventDefault();
+    }, true);
+
+    // Diagnostics: errors are kept in memory and shown in the loader's collapsible panel.
+    var diagLines = [];
+    var diagErrors = 0;
+    function elapsedSeconds() { return ((performance.now() - t0) / 1000).toFixed(1); }
+    function safeText(value) {
+        if (typeof value === "string") return value;
+        if (value && value.stack) return String(value.stack);
+        if (value && value.message) return String(value.message);
+        try { return JSON.stringify(value) || String(value); } catch (error) { return String(value); }
+    }
+    function diagRender() {
+        var log = document.getElementById("dynty-loader-diag-log");
+        var summary = document.getElementById("dynty-loader-diag-summary");
+        if (log) log.textContent = diagLines.join("\n");
+        if (summary) {
+            summary.textContent = "Diagnostics · " + diagErrors + (diagErrors === 1 ? " error" : " errors");
+            summary.classList.toggle("has-errors", diagErrors > 0);
+        }
+    }
+    function diagAdd(kind, text, isError) {
+        diagLines.push("[" + elapsedSeconds() + "s] " + kind + " " + text);
+        if (diagLines.length > 80) diagLines.shift();
+        if (isError) diagErrors += 1;
+        diagRender();
+    }
+    window.addEventListener("error", function (event) {
+        var target = event.target;
+        if (target && target !== window && (target.src || target.href)) {
+            diagAdd("resource", "failed to load " + (target.src || target.href), true);
+            return;
+        }
+        var where = event.filename ? " @ " + event.filename + ":" + event.lineno : "";
+        diagAdd("error", String(event.message || "error") + where, true);
+    }, true);
+    window.addEventListener("unhandledrejection", function (event) {
+        diagAdd("rejection", safeText(event.reason), true);
+    });
+    var nativeConsoleError = console.error;
+    console.error = function () {
+        var parts = [];
+        for (var i = 0; i < arguments.length; i++) parts.push(safeText(arguments[i]));
+        diagAdd("console.error", parts.join(" "), true);
+        return nativeConsoleError.apply(console, arguments);
+    };
+
+    // Download progress: count bytes of the game files (wasm, js, whl) and the APK.
+    var TRACK_URL = /\.(wasm|js|whl|apk|data)(\?|#|$)/i;
+    var netItems = [];
+    var netQueued = false;
+    var shownPercent = 8;
+    function netTracked(url) { return TRACK_URL.test(String(url || "")); }
+    function netStart(url) {
+        var item = {
+            url: String(url),
+            kind: /\.apk(\?|#|$)/i.test(String(url)) ? "assets" : "game",
+            loaded: 0,
+            total: 0,
+            done: false
+        };
+        netItems.push(item);
+        return item;
+    }
+    function netFinish(item, failed) {
+        if (item.done) return;
+        item.done = true;
+        if (!item.total) item.total = item.loaded;
+        if (failed) item.failed = true;
+        netSchedule();
+    }
+    function netSchedule() {
+        window.dyntyLoaderNetActivity = Date.now();
+        if (netQueued) return;
+        netQueued = true;
+        setTimeout(netRender, 150);
+    }
+    function netSum(kind) {
+        var sum = { loaded: 0, total: 0, active: 0, count: 0, knownLoaded: 0, knownTotal: 0 };
+        netItems.forEach(function (item) {
+            if (item.kind !== kind) return;
+            sum.count += 1;
+            if (!item.done) sum.active += 1;
+            sum.loaded += item.loaded;
+            sum.total += item.total;
+            // Percent uses only items whose size is known; unknown-size transfers would pin it.
+            if (item.total > 0) {
+                sum.knownLoaded += Math.min(item.loaded, item.total);
+                sum.knownTotal += item.total;
+            }
+        });
+        return sum;
+    }
+    function mb(bytes) { return (bytes / 1048576).toFixed(1); }
+    function sumText(sum) {
+        return mb(sum.loaded) + (sum.total > sum.loaded ? " / " + mb(sum.total) : "") + " MB";
+    }
+    function netRender() {
+        netQueued = false;
+        if (window.dyntyLoaderPythonStarted) return;
+        var assets = netSum("assets");
+        var game = netSum("game");
+        var text = null;
+        if (assets.active) text = "Loading assets " + sumText(assets);
+        else if (game.active) text = "Downloading game " + sumText(game);
+        else if (game.count) text = "Starting Python";
+        var stage = document.getElementById("dynty-loader-stage");
+        if (text && stage) stage.textContent = text;
+        var total = assets.knownTotal + game.knownTotal;
+        var fill = document.getElementById("dynty-loader-progress");
+        var percent = document.getElementById("dynty-loader-percent");
+        var bar = document.querySelector("#dynty-loader [role=progressbar]");
+        // Gzip-encoded CDN files have no decoded size: while one is in flight, show the bytes
+        // received instead of a percentage that would stall.
+        var unknownActive = netItems.some(function (item) { return !item.done && !item.total; });
+        if (unknownActive) {
+            if (percent) percent.textContent = mb(assets.loaded + game.loaded) + " MB";
+            return;
+        }
+        if (total > 0) {
+            var fraction = Math.min((assets.knownLoaded + game.knownLoaded) / total, 1);
+            shownPercent = Math.max(shownPercent, 8 + Math.round(40 * fraction));
+            if (fill) fill.style.width = shownPercent + "%";
+            if (percent) percent.textContent = String(shownPercent).padStart(2, "0") + "%";
+            if (bar) bar.setAttribute("aria-valuenow", String(shownPercent));
+        }
+    }
+
+    var nativeFetch = window.fetch;
+    if (nativeFetch && window.ReadableStream && window.Response) {
+        window.fetch = function (input, init) {
+            var url = typeof input === "string" ? input : (input && input.url) || "";
+            var request = nativeFetch.apply(this, arguments);
+            if (!netTracked(url)) return request;
+            var item = netStart(url);
+            netSchedule();
+            return request.then(function (response) {
+                if (response.status >= 400) diagAdd("http", response.status + " " + url, true);
+                if (!response.body || response.type === "opaque") {
+                    netFinish(item);
+                    return response;
+                }
+                var length = response.headers.get("content-length");
+                var encoded = response.headers.get("content-encoding");
+                item.total = length && !encoded ? parseInt(length, 10) || 0 : 0;
+                var reader = response.body.getReader();
+                var stream = new ReadableStream({
+                    pull: function (controller) {
+                        return reader.read().then(function (chunk) {
+                            if (chunk.done) {
+                                netFinish(item);
+                                controller.close();
+                                return;
+                            }
+                            item.loaded += chunk.value.byteLength;
+                            netSchedule();
+                            controller.enqueue(chunk.value);
+                        }, function (error) {
+                            netFinish(item, true);
+                            diagAdd("network", url + " " + safeText(error), true);
+                            controller.error(error);
+                        });
+                    },
+                    cancel: function (reason) {
+                        netFinish(item, true);
+                        return reader.cancel(reason);
+                    }
+                });
+                return new Response(stream, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                });
+            }, function (error) {
+                netFinish(item, true);
+                diagAdd("network", url + " " + safeText(error), true);
+                throw error;
+            });
+        };
+    }
+
+    if (window.XMLHttpRequest) {
+        var nativeOpen = XMLHttpRequest.prototype.open;
+        var nativeSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open = function (method, url) {
+            this.__dyntyUrl = String(url);
+            return nativeOpen.apply(this, arguments);
+        };
+        XMLHttpRequest.prototype.send = function () {
+            var xhr = this;
+            var url = xhr.__dyntyUrl || "";
+            if (netTracked(url)) {
+                var item = netStart(url);
+                netSchedule();
+                xhr.addEventListener("progress", function (event) {
+                    item.loaded = event.loaded;
+                    if (event.lengthComputable) item.total = event.total;
+                    netSchedule();
+                });
+                xhr.addEventListener("loadend", function () {
+                    if (xhr.status >= 400 || xhr.status === 0) diagAdd("http", xhr.status + " " + url, true);
+                    netFinish(item, xhr.status === 0);
+                });
+            }
+            return nativeSend.apply(this, arguments);
+        };
+    }
+
+    // Script tags (Pygbag fetches its runtime with <script src>, which fetch() does not see).
+    function netSizeFromEntry(item, entry) {
+        var bytes = entry ? (entry.encodedBodySize || entry.transferSize || 0) : 0;
+        if (bytes) {
+            item.loaded = bytes;
+            item.total = bytes;
+        }
+    }
+    function netWatchScript(script) {
+        var src = script.src;
+        if (!netTracked(src) || script.__dyntyWatched) return;
+        script.__dyntyWatched = true;
+        var item = netStart(src);
+        var entry = performance.getEntriesByName(src)[0];
+        if (entry && entry.responseEnd > 0) {
+            netSizeFromEntry(item, entry);
+            netFinish(item);
+            return;
+        }
+        netSchedule();
+        script.addEventListener("load", function () {
+            netSizeFromEntry(item, performance.getEntriesByName(src)[0]);
+            netFinish(item);
+        });
+        script.addEventListener("error", function () {
+            netFinish(item, true);
+            diagAdd("resource", "failed to load " + src, true);
+        });
+    }
+    document.querySelectorAll("script[src]").forEach(netWatchScript);
+    if (window.MutationObserver) {
+        new MutationObserver(function (records) {
+            records.forEach(function (record) {
+                record.addedNodes.forEach(function (node) {
+                    if (node.tagName === "SCRIPT") netWatchScript(node);
+                });
+            });
+        }).observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+        return new Promise(function (resolve, reject) {
+            var area = document.createElement("textarea");
+            area.value = text;
+            area.setAttribute("readonly", "");
+            area.style.position = "fixed";
+            area.style.opacity = "0";
+            document.body.appendChild(area);
+            area.select();
+            var ok = false;
+            try { ok = document.execCommand("copy"); } catch (error) { ok = false; }
+            area.remove();
+            if (ok) resolve();
+            else reject(new Error("copy failed"));
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var copy = document.querySelector("#dynty-loader .dynty-loader-copy");
+        if (!copy) return;
+        var extra = document.createElement("div");
+        extra.className = "dynty-loader-extra";
+        extra.innerHTML =
+            '<div id="dynty-loader-elapsed">Elapsed 0 s</div>' +
+            '<p id="dynty-loader-hint" hidden>Slow connection? Keep waiting. Wi-Fi is recommended for the first load (about 25 MB).</p>' +
+            '<details id="dynty-loader-diag"><summary id="dynty-loader-diag-summary">Diagnostics · 0 errors</summary>' +
+            '<pre id="dynty-loader-diag-log"></pre>' +
+            '<button type="button" id="dynty-loader-copy-btn">Copy details</button></details>';
+        copy.appendChild(extra);
+        diagRender();
+        var button = document.getElementById("dynty-loader-copy-btn");
+        button.addEventListener("click", function () {
+            var stage = document.getElementById("dynty-loader-stage");
+            var build = document.querySelector("#dynty-loader .dynty-loader-build");
+            var text = [
+                "Dynty loader diagnostics",
+                "build: " + (build ? build.textContent : "unknown"),
+                "user agent: " + navigator.userAgent,
+                "viewport: " + window.innerWidth + "x" + window.innerHeight + " dpr " + window.devicePixelRatio,
+                "stage: " + (stage ? stage.textContent : ""),
+                "elapsed: " + elapsedSeconds() + "s",
+                "",
+                diagLines.join("\n")
+            ].join("\n");
+            copyText(text).then(
+                function () { button.textContent = "Copied"; },
+                function () { button.textContent = "Copy failed - select the text above"; }
+            );
+        });
+        var elapsedEl = document.getElementById("dynty-loader-elapsed");
+        var hintEl = document.getElementById("dynty-loader-hint");
+        var timer = window.setInterval(function () {
+            var loader = document.getElementById("dynty-loader");
+            if (!loader || loader.classList.contains("is-hidden")) {
+                window.clearInterval(timer);
+                return;
+            }
+            var seconds = Math.floor((performance.now() - t0) / 1000);
+            elapsedEl.textContent = "Elapsed " + seconds + " s";
+            if (seconds >= 60) hintEl.hidden = false;
+        }, 1000);
+    });
+})();
+</script>
+
 <script>
     let dyntyLoaderLastProgress = Date.now();
     let dyntyLoaderProgress = 8;
@@ -543,7 +884,7 @@ config = {
         }
     }
 
-    window.dyntyUpdateLoader = function (label, progress, complete) {
+    window.dyntyUpdateLoader = function (label, progress, complete, fromWatchdog) {
         const loader = document.getElementById("dynty-loader");
         const stage = document.getElementById("dynty-loader-stage");
         const fill = document.getElementById("dynty-loader-progress");
@@ -551,6 +892,8 @@ config = {
         const bar = document.querySelector("#dynty-loader [role=progressbar]");
         dyntyLoaderLastProgress = Date.now();
         dyntyLoaderProgress = progress;
+        // Mobile-only download progress (dynty-mobile) stops updating the bar once Python reports in.
+        if (!fromWatchdog) window.dyntyLoaderPythonStarted = true;
         if (!dyntyLoaderLog.length && stage) dyntyLoaderLogAdd(stage.textContent, 0);
         dyntyLoaderLogAdd(label);
         dyntyLoaderLogRender();
@@ -567,12 +910,14 @@ config = {
             window.clearInterval(dyntyLoaderWatchdog);
             return;
         }
-        if (Date.now() - dyntyLoaderLastProgress < 30000) return;
+        const lastActivity = Math.max(dyntyLoaderLastProgress, window.dyntyLoaderNetActivity || 0);
+        if (Date.now() - lastActivity < 30000) return;
         dyntyLoaderLastProgress = Date.now();
         window.dyntyUpdateLoader(
             "Still waiting for the browser runtime. Check console or network access.",
             dyntyLoaderProgress,
-            false
+            false,
+            true
         );
     }, 1000);
 </script>
@@ -746,7 +1091,7 @@ frameborder="1"
             <div class="dynty-loader-progress-meta"><span>ENGINE INITIALIZATION</span><span id="dynty-loader-percent">08%</span></div>
         </div>
         <footer class="dynty-loader-footer">
-            <span class="dynty-loader-footer-left"><span class="dynty-loader-build">BUILD 0.8.9.125</span><span class="dynty-loader-divider"></span><span>PYGAME WEBASSEMBLY</span></span>
+            <span class="dynty-loader-footer-left"><span class="dynty-loader-build">BUILD 0.8.9.126</span><span class="dynty-loader-divider"></span><span>PYGAME WEBASSEMBLY</span></span>
             <span class="dynty-loader-footer-status"><span class="dynty-loader-divider"></span> LOCAL SAVE STORAGE</span>
         </footer>
     </div>
