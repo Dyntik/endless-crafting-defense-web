@@ -1,0 +1,15 @@
+{
+  "name": "Dynty Tower Defense",
+  "short_name": "Dynty TD",
+  "description": "Tower defense with crafting and resource management. Plays offline after the first visit.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0a0f1c",
+  "theme_color": "#0a0f1c",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}
