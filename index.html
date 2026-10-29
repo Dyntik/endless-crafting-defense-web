@@ -84,7 +84,7 @@ async def custom_site():
 
 
 
-    apk = "endless-crafting-defense.apk?release=f0f3d062c375ddc9"
+    apk = "endless-crafting-defense.apk?release=9fb490269c0cd37a"
 
     bundle = "endless-crafting-defense"
 
@@ -601,6 +601,95 @@ config = {
     document.addEventListener("contextmenu", function (event) {
         if (event.target && event.target.tagName === "CANVAS") event.preventDefault();
     }, true);
+
+    // Phone text entry (the NEW RUN name). The game draws the field on its canvas; this hidden input owns the keyboard
+    // and never shows. Python publishes the field rect (logical px) with arm(). Android opens the keyboard only for a
+    // focus inside a user gesture, so pointerdown/touchend inside that rect focus the input synchronously here. Python
+    // reads .value and .submits every frame (the field mirrors typing live); Done/Enter blurs the input and counts a
+    // submit. Blur keeps the value; close() clears it. Fullscreen is handled above (every tap re-requests it).
+    var textInput = null;
+    var textArmed = null;
+    var textSubmits = 0;
+    function ensureTextInput() {
+        if (textInput || !document.body) return textInput;
+        var input = document.createElement("input");
+        input.type = "text";
+        input.setAttribute("autocomplete", "off");
+        input.setAttribute("autocapitalize", "words");
+        input.setAttribute("enterkeyhint", "done");
+        input.maxLength = 20;
+        input.style.cssText = "position:fixed;left:-200px;top:0;width:1px;height:1px;opacity:0;border:0;padding:0;margin:0;"
+            + "font-size:16px;pointer-events:none;";
+        document.body.appendChild(input);
+        textInput = input;
+        return input;
+    }
+    // Keys typed in the phone field stay in the field. The game's page-level key handler calls preventDefault on
+    // keydown, which cancels the text insertion, so this window-capture listener (registered before the game's) stops
+    // the propagation for the field only. Done/Enter is handled here: it submits and blurs the keyboard.
+    ["keydown", "keypress", "keyup"].forEach(function (type) {
+        window.addEventListener(type, function (event) {
+            if (!textInput || event.target !== textInput) return;
+            event.stopPropagation();
+            if (type === "keydown" && (event.key === "Enter" || event.keyCode === 13) && !event.isComposing) {
+                event.preventDefault();
+                textSubmits += 1;
+                textInput.blur();
+            }
+        }, true);
+    });
+    function tapPoint(event) {
+        var touch = event.changedTouches && event.changedTouches[0];
+        return touch ? { x: touch.clientX, y: touch.clientY } : { x: event.clientX, y: event.clientY };
+    }
+    function inTextField(point) {
+        var canvas = document.querySelector("canvas");
+        if (!textArmed || !canvas) return false;
+        var box = canvas.getBoundingClientRect();
+        var sx = box.width / textArmed.W;
+        var sy = box.height / textArmed.H;
+        var left = box.left + textArmed.x * sx;
+        var top = box.top + textArmed.y * sy;
+        return point.x >= left && point.x <= left + textArmed.w * sx && point.y >= top && point.y <= top + textArmed.h * sy;
+    }
+    function focusTextField(event) {
+        if (!textArmed) return;
+        var input = ensureTextInput();
+        if (!input || !inTextField(tapPoint(event))) return;
+        if (document.activeElement !== input) input.focus({ preventScroll: true });
+    }
+    document.addEventListener("pointerdown", focusTextField, true);
+    document.addEventListener("touchend", focusTextField, true);
+    document.addEventListener("mousedown", function (event) {
+        // A compatibility mousedown on the field must not blur the input (that would close the keyboard).
+        if (textArmed && textInput && document.activeElement === textInput && inTextField(tapPoint(event))) {
+            event.preventDefault();
+        }
+    }, true);
+    window.dyntyTextInput = {
+        arm: function (x, y, w, h, logicalW, logicalH) {
+            if (!ensureTextInput()) return;
+            textArmed = { x: x, y: y, w: w, h: h, W: logicalW, H: logicalH };
+        },
+        open: function () {
+            var input = ensureTextInput();
+            if (input) input.value = "";
+        },
+        focus: function () {
+            var input = ensureTextInput();
+            if (input && document.activeElement !== input) input.focus({ preventScroll: true });
+        },
+        close: function () {
+            textArmed = null;
+            if (textInput) {
+                textInput.blur();
+                textInput.value = "";
+            }
+        },
+        get value() { return textInput ? textInput.value : ""; },
+        get focused() { return !!textInput && document.activeElement === textInput; },
+        get submits() { return textSubmits; }
+    };
 
     // Diagnostics: errors are kept in memory and shown in the loader's collapsible panel.
     var diagLines = [];
@@ -1161,7 +1250,7 @@ frameborder="1"
             <div class="dynty-loader-progress-meta"><span>ENGINE INITIALIZATION</span><span id="dynty-loader-percent">08%</span></div>
         </div>
         <footer class="dynty-loader-footer">
-            <span class="dynty-loader-footer-left"><span class="dynty-loader-build">BUILD 0.8.9.133</span><span class="dynty-loader-divider"></span><span>PYGAME WEBASSEMBLY</span></span>
+            <span class="dynty-loader-footer-left"><span class="dynty-loader-build">BUILD 0.8.9.134</span><span class="dynty-loader-divider"></span><span>PYGAME WEBASSEMBLY</span></span>
             <span class="dynty-loader-footer-status"><span class="dynty-loader-divider"></span> LOCAL SAVE STORAGE</span>
         </footer>
     </div>
