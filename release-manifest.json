@@ -1,12 +1,12 @@
 {
     "schema_version":  1,
-    "game_version":  "0.8.9.132",
+    "game_version":  "0.8.9.133",
     "entrypoint":  "index.html",
     "runtime_cdn":  "https://pygame-web.github.io/archives/0.9/",
     "apk":  {
                 "file":  "endless-crafting-defense.apk",
-                "release_key":  "6e1bd369ccb7b64b",
-                "sha256":  "6e1bd369ccb7b64bdfda789db0326051ccdb38b8cbac4933b8102e21e54c1635",
-                "size_bytes":  6855800
+                "release_key":  "f0f3d062c375ddc9",
+                "sha256":  "f0f3d062c375ddc93c8d0c09bdf7b4cb113701547734cc1639eb355e56c78c79",
+                "size_bytes":  6872007
             }
 }
