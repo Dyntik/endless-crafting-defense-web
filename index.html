@@ -84,7 +84,7 @@ async def custom_site():
 
 
 
-    apk = "endless-crafting-defense.apk?release=15f00355c793f503"
+    apk = "endless-crafting-defense.apk?release=6e1bd369ccb7b64b"
 
     bundle = "endless-crafting-defense"
 
@@ -529,8 +529,74 @@ config = {
     meta.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover");
     var style = document.createElement("style");
     style.id = "dynty-mobile-style";
-    style.textContent = "\nhtml.dynty-mobile, html.dynty-mobile body {\n    height: 100vh;\n    height: 100dvh;\n    margin: 0;\n    overflow: hidden;\n    overscroll-behavior: none;\n    -webkit-touch-callout: none;\n    -webkit-user-select: none;\n    user-select: none;\n    -webkit-tap-highlight-color: transparent;\n}\nhtml.dynty-mobile canvas.emscripten {\n    touch-action: none;\n    overscroll-behavior: none;\n    -webkit-touch-callout: none;\n    -webkit-user-select: none;\n    user-select: none;\n}\n.dynty-loader-extra { margin-top: 18px; color: #8a98b8; font-size: 12px; }\n#dynty-loader-elapsed { font-variant-numeric: tabular-nums; }\n#dynty-loader-hint { margin: 10px 0 0; color: #ffcf70; font-size: 12px; }\n#dynty-loader-diag { margin-top: 14px; padding-top: 10px; border-top: 1px solid #2a3654; }\n#dynty-loader-diag summary { cursor: pointer; color: #e8eefc; }\n#dynty-loader-diag summary.has-errors { color: #ff6b6b; }\n#dynty-loader-diag-log {\n    max-height: 140px;\n    overflow: auto;\n    margin: 8px 0;\n    padding: 8px;\n    background: rgba(0, 0, 0, .35);\n    color: #8a98b8;\n    font: 11px/1.4 \"Cascadia Mono\", Consolas, \"Courier New\", monospace;\n    white-space: pre-wrap;\n    word-break: break-word;\n    -webkit-user-select: text;\n    user-select: text;\n}\n#dynty-loader-copy-btn {\n    height: 26px;\n    padding: 0 10px;\n    border: 1px solid #ffcf70;\n    border-radius: 3px;\n    background: transparent;\n    color: #ffcf70;\n    font: 600 11px \"Bahnschrift\", \"Segoe UI\", sans-serif;\n}\n";
+    style.textContent = "\nhtml.dynty-mobile, html.dynty-mobile body {\n    height: 100vh;\n    height: 100dvh;\n    margin: 0;\n    overflow: hidden;\n    overscroll-behavior: none;\n    -webkit-touch-callout: none;\n    -webkit-user-select: none;\n    user-select: none;\n    -webkit-tap-highlight-color: transparent;\n}\nhtml.dynty-mobile canvas.emscripten {\n    display: block;\n    margin: 0 !important;\n    width: 100% !important;\n    height: 100% !important;\n    touch-action: none;\n    overscroll-behavior: none;\n    -webkit-touch-callout: none;\n    -webkit-user-select: none;\n    user-select: none;\n}\n.dynty-loader-extra { margin-top: 18px; color: #8a98b8; font-size: 12px; }\n#dynty-loader-elapsed { font-variant-numeric: tabular-nums; }\n#dynty-loader-hint { margin: 10px 0 0; color: #ffcf70; font-size: 12px; }\n#dynty-loader-diag { margin-top: 14px; padding-top: 10px; border-top: 1px solid #2a3654; }\n#dynty-loader-diag summary { cursor: pointer; color: #e8eefc; }\n#dynty-loader-diag summary.has-errors { color: #ff6b6b; }\n#dynty-loader-diag-log {\n    max-height: 140px;\n    overflow: auto;\n    margin: 8px 0;\n    padding: 8px;\n    background: rgba(0, 0, 0, .35);\n    color: #8a98b8;\n    font: 11px/1.4 \"Cascadia Mono\", Consolas, \"Courier New\", monospace;\n    white-space: pre-wrap;\n    word-break: break-word;\n    -webkit-user-select: text;\n    user-select: text;\n}\n#dynty-loader-copy-btn {\n    height: 26px;\n    padding: 0 10px;\n    border: 1px solid #ffcf70;\n    border-radius: 3px;\n    background: transparent;\n    color: #ffcf70;\n    font: 600 11px \"Bahnschrift\", \"Segoe UI\", sans-serif;\n}\n";
     document.head.appendChild(style);
+
+    // Full screen on touch devices. Browsers only grant full screen inside a user gesture, so every touch that
+    // lands while the page is not full screen asks again (plus landscape lock where supported). Visibility and
+    // orientation changes just refresh the hint; the next touch does the request. A history entry keeps the Android
+    // back gesture from leaving the game page: popstate pushes it again. Silent on failure; listeners only.
+    var fsHint = null;
+    var fsHintTimer = 0;
+    function isInstalled() {
+        try {
+            return window.matchMedia("(display-mode: fullscreen)").matches
+                || window.matchMedia("(display-mode: standalone)").matches
+                || window.navigator.standalone === true;
+        } catch (error) { return false; }
+    }
+    function inFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function flashFsHint(ms) {
+        if (!fsHint) return;
+        window.clearTimeout(fsHintTimer);
+        fsHint.hidden = inFullscreen() || isInstalled();
+        if (fsHint.hidden) return;
+        fsHintTimer = window.setTimeout(function () { if (fsHint) fsHint.hidden = true; }, ms);
+    }
+    function lockLandscape() {
+        try {
+            var orientation = window.screen && window.screen.orientation;
+            if (orientation && orientation.lock) orientation.lock("landscape").catch(function () {});
+        } catch (error) { /* unsupported: keep the current orientation */ }
+    }
+    function enterFullscreen() {
+        if (inFullscreen() || isInstalled()) return;
+        var root = document.documentElement;
+        if (!root.requestFullscreen) return;
+        try {
+            var request = root.requestFullscreen({ navigationUI: "hide" });
+            if (request && request.then) request.then(lockLandscape, function () {});
+        } catch (error) { /* refused: the next touch asks again */ }
+    }
+    document.addEventListener("pointerdown", enterFullscreen, true);
+    document.addEventListener("touchend", enterFullscreen, true);
+    document.addEventListener("fullscreenchange", function () {
+        flashFsHint(2500);
+        window.dispatchEvent(new Event("resize"));
+    });
+    document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) flashFsHint(2500);
+    });
+    window.addEventListener("orientationchange", function () { flashFsHint(2500); });
+    function pushBackGuard() {
+        try { window.history.pushState({ dyntyFullscreen: true }, "", window.location.href); } catch (error) { /* no history API */ }
+    }
+    pushBackGuard();
+    window.addEventListener("popstate", pushBackGuard);
+    document.addEventListener("DOMContentLoaded", function () {
+        var css = document.createElement("style");
+        css.textContent = "#dynty-fs-hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:2147483000;"
+            + "padding:6px 12px;border-radius:4px;background:rgba(10,15,28,.82);color:#e8f1ff;"
+            + "font:600 12px \"Segoe UI\",sans-serif;pointer-events:none;white-space:nowrap}"
+            + "#dynty-fs-hint[hidden]{display:none}";
+        document.head.appendChild(css);
+        fsHint = document.createElement("div");
+        fsHint.id = "dynty-fs-hint";
+        fsHint.textContent = "Tap to return to full screen";
+        fsHint.hidden = true;
+        document.body.appendChild(fsHint);
+        flashFsHint(3000);
+    });
 
     document.addEventListener("contextmenu", function (event) {
         if (event.target && event.target.tagName === "CANVAS") event.preventDefault();
@@ -1095,7 +1161,7 @@ frameborder="1"
             <div class="dynty-loader-progress-meta"><span>ENGINE INITIALIZATION</span><span id="dynty-loader-percent">08%</span></div>
         </div>
         <footer class="dynty-loader-footer">
-            <span class="dynty-loader-footer-left"><span class="dynty-loader-build">BUILD 0.8.9.131</span><span class="dynty-loader-divider"></span><span>PYGAME WEBASSEMBLY</span></span>
+            <span class="dynty-loader-footer-left"><span class="dynty-loader-build">BUILD 0.8.9.132</span><span class="dynty-loader-divider"></span><span>PYGAME WEBASSEMBLY</span></span>
             <span class="dynty-loader-footer-status"><span class="dynty-loader-divider"></span> LOCAL SAVE STORAGE</span>
         </footer>
     </div>
